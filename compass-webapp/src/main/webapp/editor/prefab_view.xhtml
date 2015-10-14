@@ -1,0 +1,110 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+				xmlns:f="http://java.sun.com/jsf/core"
+				xmlns:compass="http://dfki.asr.de/compass/components">
+<!--
+ This file is part of COMPASS. It is subject to the license terms in
+ the LICENSE file found in the top-level directory of this distribution.
+ (Also available at http://www.apache.org/licenses/LICENSE-2.0.txt)
+ You may not use this file except in compliance with the License.
+-->
+	<p:droppable onDrop="COMPASS.EventHandler.onObjectDroppedOntoPrefabsPanel.bind(COMPASS.EventHandler)" tolerance="pointer"/>
+
+	<h:form id="prefabSelectionGridForm">
+		<p:remoteCommand name="remoteReplacePrefabWithSceneNode" action="#{prefabBean.replacePrefabWithSceneNode}"
+						 update="prefabSelectionGrid" >
+		</p:remoteCommand>
+		<p:contextMenu for="prefabSelectionGridForm"
+					   style="width: 8em; min-width: 8em;">
+			<p:menuitem value="Delete"
+						update=":deletePrefabConfirmDialogView"
+						oncomplete="deletePrefabConfirmDialog.show();"
+						icon="ui-icon-trash" />
+		</p:contextMenu>
+
+		<p:outputPanel id="prefab-buttons" styleClass="prefabs-button-panel">
+			<compass:plugin slot="prefabButtons" />
+		</p:outputPanel>
+
+		<div onclick="COMPASS.EventHandler.onPrefabGridClick(event);">
+			<p:dataGrid id="prefabSelectionGrid"
+						styleClass="prefabSelectionGrid"
+						var="prefab"
+						value="#{prefabBean.prefabListOfCurrentlySelectedPrefabSet}"
+						rendered="#{not empty prefabSetsHierarchyBean.selectedPrefabSetTreeNode}"
+						emptyMessage="You selected an empty PrefabSet."
+						rows="10"
+						columns="12"
+						paginator="true"
+						paginatorPosition="bottom"
+						paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}">
+				<p:panelGrid columns="1" styleClass="prefabSetGridElement ui-corner-all">
+					<h:panelGrid onmouseup="COMPASS.EventHandler.prefabSelectionEventListener.bind(COMPASS.EventHandler)(event)">
+						<p:column>
+							<p:row>
+								<p:outputPanel id="prefab-container">
+									<p:outputPanel layout="block"
+												   styleClass="prefabPreviewImage"
+												   style="background-image:url('#{imageURLBuilder.build(prefabBean.getPreviewImageOfPrefab(prefab))}')"
+												   id="prefabPreview"
+												   rendered="#{not empty prefab.components and prefabBean.prefabHasPreview(prefab)}"/>
+									<p:outputPanel layout="block"
+												   styleClass="prefabPreviewImage"
+												   style="background-image:url('../resources/images/default_image.png')"
+												   id="prefabDefaultPreview"
+												   rendered="#{empty prefab.components or not prefabBean.prefabHasPreview(prefab)}"/>
+									<!--
+									This hidden text label provides JavaScript with the prefab id, which it needs to send to the server
+									after a prefab instance is created through a drag & drop operation
+									-->
+									<h:outputText value="#{prefab.id}" styleClass="prefab-id-field" />
+								</p:outputPanel>
+								<p:droppable for="prefab-container" onDrop="COMPASS.EventHandler.onObjectDroppedOntoPrefab.bind(COMPASS.EventHandler)" tolerance="pointer" hoverStyleClass="ui-state-hover" />
+							</p:row>
+							<p:row>
+								<p:outputPanel styleClass="prefabPreviewName">
+									<h:outputText value="#{compass:truncateString(prefab.name, 32)}" />
+								</p:outputPanel>
+							</p:row>
+						</p:column>
+						<h:outputScript>COMPASS.Editor.restorePrefabSelectionAfterUpdate.bind(COMPASS.Editor)()</h:outputScript>
+					</h:panelGrid>
+					<p:draggable opacity="0.7" revert="true" zindex="1000" helper="clone" proxy="true"/>
+				</p:panelGrid>
+			</p:dataGrid>
+		</div>
+	</h:form>
+	<p:confirmDialog widgetVar="replaceConfirmDialog" message="Are you sure you want to replace the prefab?" closable="false" appendTo="@(body)" closeOnEscape="true">
+		<f:facet name="header">
+			Confirm
+		</f:facet>
+		<h:form id="replaceConfirmDialogButtonsForm">
+			<p:commandButton value="Replace" type="button" onclick="COMPASS.EventHandler.onConfirmReplacePrefab.bind(COMPASS.EventHandler)()" styleClass="float-right" icon="ui-icon-check" ajax="false"/>
+			<p:commandButton value="Cancel" type="button" onclick="replaceConfirmDialog.hide()" styleClass="float-right" icon="ui-icon-close" ajax="false"/>
+		</h:form>
+	</p:confirmDialog>
+	<p:confirmDialog widgetVar="deletePrefabConfirmDialog"
+					 id="deletePrefabConfirmDialogView"
+					 header="Confirm"
+					 closable="false"
+					 message="Do You really want to delete the prefab &quot;${scenarioEditorBean.selectedSceneNode.name}&quot;?"
+					 closeOnEscape="true"
+					 appendTo="@(body)">
+		<h:form id="deletePrefabConfirmDialogForm">
+				<p:commandButton value="Cancel"
+								 style="margin-left:5px;"
+								 onclick="deletePrefabConfirmDialog.hide();"
+								 process="@this"
+								 icon="ui-icon-close"
+								 styleClass="float-right"/>
+				<p:commandButton value="Delete"
+								 action="#{prefabBean.deleteSelectedPrefab}"
+								 update=":prefabSelectionGridForm"
+								 oncomplete="COMPASS.Editor.deletePrefab.bind(COMPASS.Editor)(); deletePrefabConfirmDialog.hide();"
+								 icon="ui-icon-check"
+								 styleClass="float-right"/>
+		</h:form>
+	</p:confirmDialog>
+</ui:composition>

@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+				xmlns:c="http://java.sun.com/jsp/jstl/core">
+<!--
+ This file is part of COMPASS. It is subject to the license terms in
+ the LICENSE file found in the top-level directory of this distribution.
+ (Also available at http://www.apache.org/licenses/LICENSE-2.0.txt)
+ You may not use this file except in compliance with the License.
+-->
+	<h:form>
+		<p:remoteCommand action="#{annotationBean.attachAnnotation}" name="remoteAttachAnnotation"/>
+		<p:remoteCommand action="#{annotationBean.editAnnotation}" name="remoteEditAnnotation"/>
+	</h:form>
+	<p:dialog appendTo="@(body)" closable="false" closeOnEscape="false"
+			  header="Edit annotation"
+			  resizable="false"
+			  widgetVar="annotationEditDialog"
+			  style="max-width:480px; max-height: 780px;"
+			  position="center top"
+			  onShow="">
+		<h:form id="annotationEditForm">
+			<div class="form-group">
+				<label for="annotation-title-input">Title</label>
+				<input type="text" class="form-control" id="annotation-title-input" placeholder="A meaningful title" value=""
+					   onfocus="COMPASS.EventHandler.disableCameraControlsOnFocus(event)"
+					   onblur="COMPASS.EventHandler.enableCameraControlsOnBlur(event)"
+					   onkeydown="COMPASS.EventHandler.blurElementOnEnter(event)" />
+				<div class="verticalSpacerDiv10Pixels" />
+				<label for="annotation-text-input">Text</label>
+				<textarea cols="50" rows="8" class="form-control" id="annotation-text-input"
+					   placeholder="The text of your annotation" value=""
+					   onfocus="COMPASS.EventHandler.disableCameraControlsOnFocus(event)"
+					   onblur="COMPASS.EventHandler.enableCameraControlsOnBlur(event)" />
+			</div>
+			<!-- between the dialog and the footer a separator gets rendered anyway -->
+			<div class="ui-dialog-footer ui-widget-content" style="margin-top:20px; margin-bottom:-15px;">
+				<span>
+					<div style="text-align:right; margin-top: 5px;">
+						<p:commandButton onclick="COMPASS.Annotations.confirmAnnotationDialog(); return false;"
+								id="annotation-confirm-button"
+								type="button"
+								value="Confirm"
+								update=""
+								styleClass="float-right ui-priority-primary">
+						</p:commandButton>
+						<p:commandButton onclick="COMPASS.Annotations.abortAnnotationDialog(); return false;"
+										 value="Cancel"
+										 type="button"
+										 update=""/>
+					</div>
+				</span>
+			</div>
+		</h:form>
+	</p:dialog>
+</ui:composition>
